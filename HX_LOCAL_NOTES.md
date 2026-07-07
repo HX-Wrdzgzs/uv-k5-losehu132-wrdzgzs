@@ -1,22 +1,22 @@
-# HX Local Notes
+# HX 本地维护记录
 
-This file records local maintenance plans for this fork without changing the upstream README.
+本文件用于记录当前 fork 的本地维护计划，避免直接覆盖上游 README 中已有的大量说明。
 
-## Status
+## 当前状态
 
-- Scope: personal and development-team maintenance.
-- Purpose: local feature experiments and compatibility notes.
-- Documentation: this file is only a brief maintenance record.
+- 维护范围：个人与开发组内部维护。
+- 用途：记录本地功能实验和兼容性整理。
+- 文档状态：这里只记录简要维护计划，不作为完整发布说明。
 
-## Planned work
+## 近期计划
 
-- Add a configurable storage position for selection state.
-- Add a short prompt-tone related option.
-- Check compatibility across different layout variants.
-- Check whether related configuration tools need matching updates.
+- 新增可配置的选择状态存储位置。
+- 新增短提示音相关选项。
+- 检查不同布局变体之间的兼容性。
+- 检查相关配置工具是否需要同步调整。
 
-## Maintenance rules
+## 维护规则
 
-- Keep upstream documentation intact unless a section is clearly outdated for this fork.
-- Record affected versions and files when changing layout-related behavior.
-- Keep notes small and specific so later changes are easy to review.
+- 除非某一段已经明确不适用于当前 fork，否则尽量保留上游文档。
+- 涉及布局相关行为时，记录影响版本和涉及文件。
+- 说明保持短小明确，方便后续回看和评审。
