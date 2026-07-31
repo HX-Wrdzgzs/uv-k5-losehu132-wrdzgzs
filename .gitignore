@@ -1,7 +1,12 @@
 *.d
 *.o
-firmware
+/firmware
 /firmware.packed.bin
 /firmware.bin
 /compiled-firmware
+/build/
+/build_tmp/
+__pycache__/
+.pytest_cache/
+*.pyc
 nul
