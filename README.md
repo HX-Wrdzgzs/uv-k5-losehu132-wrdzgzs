@@ -1,292 +1,179 @@
-**Read this in other languages: [English](./README_en.md), [中文](./README.md).**
+# LOSEHU132 UV-K5 / UV-K6 固件
 
-**语言版本: [English](./README_en.md), [中文](./README.md).**
+这是一个面向 Quansheng UV-K5/UV-K6 的自定义固件维护仓库。当前版本以 **LOSEHU132** 为主，重点维护中文功能、扩展功能、可复核的构建产物，以及一份持续更新的全国中继频率数据快照。
 
+> 中文 README 是本仓库的项目说明和使用入口。`README_en.md` 保留为英文参考文档，版本和中继数据说明可能滞后于本页。
 
-## HX-Wrdzgzs 维护说明
+## 先看这里
 
-这是基于 LOSEHU 系列的 UV-K5/UV-K6 自定义固件仓库。源码、构建脚本和发布产物放在同一个仓库中；当前维护重点是 LOSEHU132 固件、中文功能和可复核的中继数据。
+| 你的目的 | 从这里开始 |
+| --- | --- |
+| 下载并刷写固件 | [当前发布目录](./release/LOSEHU132-bin-20260730/) |
+| 自己构建固件 | [本地构建](#本地构建) |
+| 查阅中继数据 | [当前数据快照](#当前数据快照) |
+| 参与更新中继 | [全国中继数据协作](#全国中继数据协作) |
+| 了解源码结构 | [目录说明](#目录说明) |
 
-### 当前发布产物
+## 当前版本
 
-当前版本：`LOSEHU132`，构建时间：`2026-07-30`。
+- 固件版本：`LOSEHU132`
+- 构建时间：`2026-07-30`
+- 目标设备：Quansheng UV-K5 / UV-K6 系列；不同硬件批次和 EEPROM 容量的兼容性需要自行确认
+- 构建环境：Windows + Python 3.13
+- 中继数据：K5DB v3 快照，数据时间 `2026-07-28`
 
-发布文件位于 [`release/LOSEHU132-bin-20260730/`](./release/LOSEHU132-bin-20260730/)：
+固件后缀代表不同的功能和容量组合。实际可用功能以源码中的编译选项、设备硬件和最终固件版本为准：
 
-| 文件 | 用途 | SHA-256 |
-| --- | --- | --- |
-| `firmware.packed.bin` | 通常用于 K5Web 或兼容的固件写入工具 | `BB380265614F73D268BA290966F3AB70E6C7E9023505510F0F406529CB6A8DE9` |
-| `firmware.bin` | 未封装的固件镜像，供需要原始镜像的工具使用 | `C51763BDF93031956DDEADD874DEF0A5855EF24B299B6B1D36BC77AF8E635334` |
-| `repeaters.bin` | 中继数据附加文件，不是固件镜像 | `84CCB5DEEB211DF62467D7B6F5DC19908EC34F96B36F1EEA773F319627070483` |
-| `tails.bin` | EEPROM/中继数据附加文件，不是固件镜像 | `9A5736CBB7F94C070EAD6351B25CDE489C97C478721CA984571F4C8EDD7F4519` |
+| 后缀 | 典型定位 |
+| --- | --- |
+| `LOSEHU132` | 中文基础版本 |
+| `LOSEHU132K` | 中文扩容版本，适用于更大 EEPROM |
+| `LOSEHU132H` | 中文输入法/大容量版本 |
+| `LOSEHU132E` | 英文版本 |
+| `LOSEHU132EK` | 英文扩容版本 |
+| `LOSEHU132HS` | 中文与 SI4732 相关功能版本 |
 
-刷写前请确认设备型号、备份原有 EEPROM，并按所用工具的说明操作。`repeaters.bin` 和 `tails.bin` 不要当作固件直接刷入无线电。
+## 主要功能
 
-### 本地构建
+功能会随版本后缀和编译选项变化，当前工程包含以下功能方向：
 
-Windows 下使用 Python 3.13 构建：
+- 中文界面、GB2312 字库和中文输入相关功能；
+- 可配置的 MDC1200、DTMF、联系人和串口功能；
+- 宽范围接收、扫描范围、自定义侧键、VOX、手电筒和 RSSI 信号显示；
+- AM 修复，以及部分版本中的 SI4732 / SSB / 多普勒卫星功能；
+- 自定义开机文字、开机图片和多种菜单行为；
+- 可扩展 EEPROM 数据区域，用于字库、输入法、卫星和中继等数据。
+
+这些功能不是所有版本都同时启用。不要仅凭文件名判断功能，刷写前请查看发布说明和设备实际配置。
+
+## 下载与刷写
+
+当前发布文件位于 [`release/LOSEHU132-bin-20260730/`](./release/LOSEHU132-bin-20260730/)：
+
+| 文件 | 用途 | 大小 | SHA-256 |
+| --- | --- | ---: | --- |
+| [`firmware.packed.bin`](./release/LOSEHU132-bin-20260730/firmware.packed.bin) | 通常用于 K5Web 或兼容的固件写入工具 | 58,474 B | `BB380265614F73D268BA290966F3AB70E6C7E9023505510F0F406529CB6A8DE9` |
+| [`firmware.bin`](./release/LOSEHU132-bin-20260730/firmware.bin) | 未封装的原始固件镜像 | 58,456 B | `C51763BDF93031956DDEADD874DEF0A5855EF24B299B6B1D36BC77AF8E635334` |
+| [`repeaters.bin`](./release/LOSEHU132-bin-20260730/repeaters.bin) | 中继数据附加文件 | 9,904 B | `84CCB5DEEB211DF62467D7B6F5DC19908EC34F96B36F1EEA773F319627070483` |
+| [`tails.bin`](./release/LOSEHU132-bin-20260730/tails.bin) | EEPROM/中继数据附加文件 | 1,906 B | `9A5736CBB7F94C070EAD6351B25CDE489C97C478721CA984571F4C8EDD7F4519` |
+
+基本流程：
+
+1. 确认对讲机型号、硬件版本和 EEPROM 容量；
+2. 使用设备支持的工具备份原始 EEPROM 和当前频道；
+3. 校验下载文件的 SHA-256；
+4. 使用 `firmware.packed.bin` 通过 [K5Web](https://k5.vicicode.com/) 或兼容工具刷写；
+5. 重启后检查固件版本、菜单和收发功能，再导入频道数据。
+
+`repeaters.bin` 和 `tails.bin` 是数据附加文件，不是固件镜像。不要把它们直接当作固件刷入对讲机；具体写入方式以对应的写频工具说明为准。
+
+刷写固件有使设备无法启动或丢失配置的风险。请不要在电量不足、连接不稳定或型号不确定时操作，也不要在未获授权的频率上发射。
+
+## 本地构建
+
+### Windows 构建
+
+仓库内置的 Windows 构建入口是 `win_make.bat`。它需要安装 ARM GNU Toolchain 和 GNU Make，并可能需要根据本机安装路径修改脚本中的 PATH：
 
 ```powershell
-C:\Python313\python.exe tools\build_firmware.py
+.\win_make.bat
 ```
 
-构建脚本会生成 `firmware.bin`、`firmware.packed.bin` 及相关中继数据。发布前应记录文件大小和 SHA-256，并将最终产物放入 `release/` 下的版本目录；构建缓存和中间文件不提交。
+也可以在已配置 ARM GCC 和 Make 的环境中直接执行：
 
-### 当前中继数据状态
+```bash
+make clean
+make full
+```
 
-本版本内置的是一份可复核但会过期的数据快照：K5DB v3，包含 430 条模拟中继记录，覆盖 152 个城市，数据快照时间为 `2026-07-28`。频率、亚音、偏移和中继运行状态可能随时间变化，使用前请结合当地管理部门、台站公告或实际守听结果核对。
+构建会生成 `firmware.bin`。如果需要供部分 Windows 写入工具使用的封装镜像，还需要按 `fw-pack.py` 的说明生成 `firmware.packed.bin`。
 
-### 全国中继数据协作网站（规划）
+发布时应：
 
-建议做，而且应该把它作为独立的数据服务，与固件源码仓库解耦。固件仓库只消费经过审核的版本化数据，避免任何人修改网页后立即让错误频率进入固件。
+1. 保留构建日志和版本信息；
+2. 检查输出文件大小；
+3. 计算 SHA-256；
+4. 将最终文件放入 `release/<版本目录>/`；
+5. 不提交 `build/`、`build_tmp/`、目标文件和其他中间缓存。
 
-第一版可以包含：
+工程也保留 Docker 构建脚本和原始 Makefile，适合需要自行调整编译选项的开发者。修改编译选项后，应重新核验固件版本、EEPROM 需求和最终镜像大小。
 
-1. 全国地图、地区筛选和频率/呼号搜索；
-2. 登录用户提交新增、修改、停用中继；
-3. `待审核`、`已核验`、`已停用`状态和完整修改记录；
-4. 频率范围、收发差、亚音、模式和重复记录校验；
-5. 来源、核验时间、维护者和备注字段；
-6. 审核后导出 JSON/CSV，并由 CI 生成固件需要的 `repeaters.bin`/`tails.bin`。
+## 当前数据快照
 
-推荐拆成三个边界：
+本版本内置的中继数据快照为 **K5DB v3**：
 
-- 当前仓库：固件源码、构建脚本、发布 bin 和数据导出格式；
-- 中继数据仓库：规范化原始数据、审核记录和版本标签；
-- 网站/API：地图展示、提交、审核、权限和导出。
+- 430 条模拟中继记录；
+- 覆盖 152 个城市；
+- 数据时间：`2026-07-28`；
+- 记录可能包含停用、迁移或尚未被本地用户确认的频率。
 
-这样既能让全国爱好者共同维护，也能保留数据来源和回滚能力。网站的 MVP 先做“可搜索 + 可提交 + 人工审核 + 导出”，不建议一开始开放无审核的直接写入。
+中继频率不是一次性数据。频率、收发差、亚音、台站状态和覆盖范围都可能变化，使用前应结合当地管理部门、台站公告、维护者信息或实际守听结果核对。
 
-# [K5Web]( https://k5.vicicode.com/)
-* 支持在线固件功能编译，无需安装编译环境！！
-* 多普勒卫星、开机图片文字、SI4732 SSB补丁的写频方式！
-* 支持**创意工坊**，注册后登录可上传自定义固件和开机图片！！！
+## 全国中继数据协作
 
-请访问：[K5Web]( https://k5.vicicode.com/)
+全国中继数据不适合长期靠固件作者手工维护，建议建设独立的“中继数据仓库 + 网站/API”。固件仓库只接收经过审核的版本化导出，避免网页上的未经审核修改直接进入发布固件。
 
-# [自定义引导](https://github.com/losehu/uv-k5-bootloader-custom)
-* 通过创立一个引导程序加载进RAM实现固件切换
-* 可切换任意固件
-* 目前仅适用于4Mib的EEPROM，通过修改代码可轻松拓展至其他大小EEPROM
-  
-# [独立的多普勒卫星固件](https://github.com/losehu/uv-k5-firmware-custom/tree/doppler)
-* 可以独立解算最多40个卫星的角度，高度，速度，距离，频偏
-* 需要扩容2Mit及以上的EEprom
-* 可以显示卫星位置，带方位图
+推荐的数据记录至少包含：
 
-# [更大固件系统](https://github.com/losehu/uv-k5-system-custom/)
-* 可以让UVK5加载超过64KB大小的固件，最高512MB
-* 更大的固件可以在一个固件中实现所有功能！！！
-* 开发中。。。敬请期待
+| 字段 | 示例含义 |
+| --- | --- |
+| `name` / `callsign` | 台站名称、呼号或标识 |
+| `province` / `city` | 省、市及更细的地理区域 |
+| `output_frequency` | 下行/接收频率 |
+| `input_frequency` | 上行/发射频率 |
+| `offset` | 收发差或偏移方向 |
+| `tone` / `mode` | CTCSS/DCS、模拟/数字模式 |
+| `status` | 待审核、已核验、已停用 |
+| `source` / `verified_at` | 信息来源和最近核验时间 |
+| `maintainer` / `notes` | 维护者、覆盖范围和备注 |
 
-# 版本说明
+第一版网站建议只做四件事：
 
-* 目前分为如下几个版本：**LOSEHUxxx**、**LOSEHUxxxK**、**LOSEHUxxxH**、**LOSEHUxxxE**、**LOSEHUxxxEK**、**LOSEHUxxxHS**
-* 
-| 版本         | 语言 | EEPROM 需求 | MDC1200 | 多普勒模式 | 频谱 | 收音机 | 中文信道名 | 自定义开机中文字符 | 开机图片 | 中文输入法 | 短信 |
-|--------------|------|-------------|---------|------------|------|--------|------------|--------------------|----------|------------|------|
-| LOSEHUxxx    | 中文 | 无需扩容    | ✅      | ❌         | ✅   | ✅     | ❌         | ❌                 | ❌       | ❌         | ❌   |
-| LOSEHUxxxK   | 中文 | 1Mib 以上   | ✅      | ✅         | ✅   | ✅     | ✅         | ✅                 | ✅       | ❌         | ❌   |
-| LOSEHUxxxH   | 中文 | 2Mib 以上   | ✅      | ✅         | ✅   | ✅     | ✅         | ✅                 | ✅       | ✅         | ❌   |
-| LOSEHUxxxHS  | 中文 | 2Mib 以上   | ❌      | ❌         | ✅   | ✅     | ✅         | ✅                 | ✅       | ✅         | ❌   |
-| LOSEHUxxxE   | 英文 | 无需扩容    | ✅      | ❌         | ✅   | ✅     | ❌         | ❌                 | ❌       | ❌         | ✅   |
-| LOSEHUxxxEK  | 英文 | 1Mib 以上   | ✅      | ✅         | ✅   | ✅     | ❌         | ✅                 | ✅       | ❌         | ❌   |
+1. 地图、地区筛选和频率搜索；
+2. 登录用户提交新增、修改和停用信息；
+3. 人工审核、重复检测、频率范围校验和修改记录；
+4. 审核后导出 JSON/CSV，再由 CI 生成固件需要的 `repeaters.bin`/`tails.bin`。
 
-### 说明：
-- ✅ 表示支持该功能
-- ❌ 表示不支持该功能
-- 表格中的“收音机”功能在 LOSEHUxxxHS 版本中特指 SI4732 收音机
+推荐的数据流是：
 
-# 多功能的K5/6固件
+```text
+用户提交 → 自动校验 → 人工审核 → 发布数据快照 → 固件构建/导出
+```
 
-该固件基于多个开源固件修改合并，拥有最多样性的功能
+这样可以让全国爱好者共同维护，同时保留来源、审核人、历史版本和回滚能力。网站不建议一开始开放无审核的直接写入。
 
-* **更大容量的Eeprom芯片**
-* **自动多普勒频移**
-* **自定义开机图**
-* **SI4732支持**
-* **中/英文支持**
-* **中文输入法**
-* **GB2312中文界面、信道**
-* **频谱图**
-* **MDC1200信令、联系人**
-* **短信**
-* **信号强度指示器（ S表 ）**
-* **一键扫频**
-* **收音机**
-* **AM 修复**
-* **SSB 解调**
+## 目录说明
 
-# 操作说明(必读！！)
+```text
+app/                 应用层和菜单相关代码
+bsp/                 板级支持包
+driver/              外设和芯片驱动
+hardware/            硬件相关配置
+tools/               构建、打包和数据处理工具
+ui/                  界面及相关资源
+写频脚本/             写频和频道数据辅助脚本
+release/             已核验的版本发布产物
+```
 
-| 按键                         | 功能                                                   |
-|----------------------------|------------------------------------------------------|
-| 🐤 **主界面下**                |                                                      |
-| **单按`上/下`**                | 调整频率（步长为菜单1项`步进频率`）                                  |
-| **单按`数字`**                 | 在频率模式下快捷输入频率                                         |
-| **单按`*`**                  | 输入要发送的DTMF(`A、B、C、D、*、#`对应`M、上、下、*、F`键侧键1退格,按PPT键发送) |
-| **长按`F`**                  | 锁定键盘                                                 |
-| **长按`M`**                  | 切换调制模式                                               |
-| **长按`*`**                  | 信道模式下是搜索列表,多次长按可切换(列表1/2/全部)，频率模式下,从当前频率开始搜索         |
-| **长按`0`/`F+0`**            | 打开/关闭收音机(或SI4732)                                    |
-| **长按`1`/`F+1`**            | 在信道模式下将当前信道复制到另一个VFO                                 |
-| **长按`2`/`F+2`**            | 切换A/B通道                                              |
-| **长按`3`/`F+3`**            | 切换频率/信道                                              |
-| **长按`4`/`F+4`**            | 一键对频                                                 |
-| **长按`5`**                  | 信道模式下切换搜索列表                                          |
-| **长按`5`**                  | 频率模式下设置搜索频率范围(从通道A到通道B频率),按*键开始搜索                    |
-| **`F+5`**                  | 频谱                                                   |
-| **长按`6`/`F+6`**            | 切换发射功率                                               |
-| **长按`7`/`F+7`**            | 声控发射开关                                               |
-| **长按`8`/`F+8`**            | 一键倒频                                                 |
-| **长按`9`/`F+9`**            | 一键即呼                                                 |
-| **`F+M`**                  | 打开短信                                                 |
-| **`F+UP`**                 | 按键音开关                                                |
-| **`F+Down`**               | 自动多普勒                                                |
-| **`F+EXIT`**               | 菜单上下颠倒                                               |
-| **`F+*`**                  | 扫描(数字/模拟)亚音                                          |
-| **短按`侧键1`**                | 监听                                                   |
-| **长按`侧键1`**                | DTMF解码开关                                             |
-| **短按`侧键2`**                | 设置宽窄带                                                |
-| **长按`侧键2`**                | 手电筒                                                  |
-| **宽窄带、DTMF解码、切换FM/AM/USB** | 集成至自定义的 **侧键与M**                                     |
-| 🎤 **SI4732收音机**           |                                                      |
-| **短按`侧键1`、短按`侧键2`**        |      SSB模式下更改bfo                                                 |
-| **短按`5`**                  | 输入频率，**短按`*`** 小数点 , **短按`MENU`** 确认                 |
-| **短按`0`**                  | 切换模式(AM/FM/SSB)，**短按`F`** 切换LSB/USB                  |
-| **短按`1`**、**短按`7`**        | 切换步进频率                                               |
-| **短按`4`**                  | 切换显示信号强度                                             |
-| **短按`6`**                  | 切换带宽                                                 |
-| **短按`2`**、**短按`8`**        | 切换ATT                                                |
-| **短按`3`**、**短按`9`**        |     上下搜索 ，**短按`EXIT`** 停止搜索                                       |
-| 🔑 **多普勒模式**               |                                                      |
-| **短按`5`**                  | 输入时间，**短按`*`** 小数点 , **短按`MENU`** 确认                 |
-| **短按`MENU`**               | 切换参数，上下调节                                            |
-| **短按`PPT`**                | 发射                                                   |
-| **短按`侧键1`**                | 开启监听                                                 |
+## 贡献与问题反馈
 
+提交中继数据时，请尽量附上来源、核验日期、当地城市、收发频率、偏移、亚音和台站状态。只说“这里能用”而没有来源或测试时间的信息，不适合作为长期数据依据。
 
+提交代码问题时，请附上：
 
+- 对讲机型号和 EEPROM 容量；
+- 固件完整版本名；
+- 复现步骤；
+- 是否修改过频道、设置或 EEPROM；
+- 必要的日志和截图。
 
-# EEPROM分布说明
+## 来源与许可
 
-| EEPROM地址                               | 描述                                                        |
-|----------------------------------------|-----------------------------------------------------------|
-| 😭 **通用**                              | 版本号：LOSEHUxxx                                             |
-| 0X01D00~0x02000                        | 基本不变                                                      |
-| 0X01D00 ~ 0X01E00<br/>0X1F90 ~ 0X01FF0 | **MDC1200**-22个MDC联系人<br/>每个联系人占用16B，前2B为MDC ID，后14B为联系人名 |
-| 0X01FFF                                | **MDC1200**-MDC联系人数量                                      |
-| 0x01FFD~0x01FFE                        | **MDC1200**-MDC ID                                        |
-| 0x01FF8~0x01FFC                        | 侧键功能                                                      |
-| 0x01FFD~0x01FFE                        | **MDC1200**-MDC ID                                        |
-| 😱 **扩容版(K、H)**                        | 版本号：LOSEHUxxxK、LOSEHUxxxH                                 |
-| 0x02000~0x02012                        | 开机字符1                                                     |
-| 0x02012~0x02024                        | 开机字符2                                                     |
-| 0x02024~0x02025                        | 开机字符1、2的长度                                                |
-| 0x02080~0x02480                        | 开机画面，长度128（宽）*64/8=1024=0x400                             |
-| 0x01FFD~0x01FFE                        | **MDC1200**-MDC ID                                        |
-| 0x02480~0x0255C                        | gFontBigDigits，长度11*20=220=0XDC                           |
-| 0x0255C~0x0267C                        | gFont3x5，长度96*3=288=0X120                                 |
-| 0x0267C~0x028B0                        | gFontSmall，长度96*6=564=0X234                               |
-| 0x028B0~0x02B96                        | 菜单编码，长度53*14=742=0X2E6                                    |
-| 0x02BA0~0x02BA9                        | **多普勒**-卫星名称,首字符在前,最多9个英文，最后一个为'\0'                       |
-| 0x02BAA~0x02BAF                        | **多普勒**-开始过境时间的年份十位个位、月、日、时、分、秒                           |
-| 0x02BB0~0x2BB5                         | **多普勒**-离境时间的年份十位个位、月、日、时、分、秒                             |
-| 0x02BB6~0x02BB7                        | **多普勒**-总过境时间（秒），低位在前，高位在后                                |
-| 0x02BB8~0x02BB9                        | **多普勒**-手台的发射亚音，低位在前，高位在后                                 |
-| 0x02BBA~0x02BBB                        | **多普勒**-手台的接收亚音，低位在前，高位在后                                 |
-| 0x02C00~0x02C64                        | **多普勒**-CTCSS_Options,长度50*2=100=0x64                     |
-| 0x02C64~0x02D34                        | **多普勒**-DCS_Options,长度104*2=208=0xD0                      |
-| 0x02BBC~0X02BBF                        | **多普勒**-开始过境时间与2000年1月1日UNIX时间戳的差,低位在前，高位在后               |
-| 0X02BC0~0X02BC5                        | **多普勒**-当前时间的年份十位个位、月、日、时、分、秒                             |
-| 0x02E00~0x1E1E6                        | GB2312中文字库,共6763*11*12/8=111590=0x1B3E6                   |
-| 0x1E200~0x20000(MAX)                   | **多普勒**-第2*n（偶数）秒卫星数据，每秒8B,包括上下行频率/10，低位在前，高位在后           |
-| 😰 **2Mib扩容版（H）**                      | 版本号：LOSEHUxxxH                                            |
-| 0x20000~0x26B00                        | **中文输入法**-拼音索引、对应字数、字的起始地址                                |
-| 0x26B00~0x2A330                        | **中文输入法**-拼音汉字表                                           |
-| 0x3C228~0x40000                        | **SI4732**-patch，长度为0x3DD8，用于SI4732的固件升级                  |
-| 0x3C210~0x3C21C                        | **SI4732**FM、AM、SSB频率、模式                                  |
-[多普勒EEPROM分布说明](https://github.com/losehu/uv-k5-firmware-chinese/blob/main/doc/多普勒eeprom详细说明.txt)
+本项目基于 UV-K5 系列开源固件及社区修改版本持续维护，相关上游项目包括：
 
+- [egzumer/uv-k5-firmware-custom](https://github.com/egzumer/uv-k5-firmware-custom)
+- [LOSEHU 自定义引导](https://github.com/losehu/uv-k5-bootloader-custom)
+- [LOSEHU 多普勒固件](https://github.com/losehu/uv-k5-firmware-custom/tree/doppler)
+- [LOSEHU 更大固件系统](https://github.com/losehu/uv-k5-system-custom/)
 
-# 用户功能自定义
-
-你可以通过启用/禁用各种编译选项来定制固件
-
-| 编译选项                                   | 描述                                                                            |
-|----------------------------------------|-------------------------------------------------------------------------------|
-| 🧰 **泉盛基本功能**                          | [Quansheng Basic Functions](https://github.com/egzumer/uv-k5-firmware-custom) |
-| ENABLE_UART                            | 串口，没有这个,你就不能通过PC配置无线电！                                                        |
-| ENABLE_AIRCOPY                         | AirCopy无线复制                                                                   |
-| ENABLE_FMRADIO                         | 收音机功能                                                                         |
-| ENABLE_NOAA                            | NOAA功能 (只有在美国有用)                                                              |
-| ENABLE_VOICE                           | 语音播报                                                                          |
-| ENABLE_VOX                             | VOX声控发射                                                                       |
-| ENABLE_ALARM                           | TX 警报                                                                         |
-| ENABLE_PWRON_PASSWORD                  | 开机密码                                                                          |
-| ENABLE_DTMF_CALLING                    | DTMF拨号功能，呼叫发起，呼叫接收，群组通话，联系人列表等                                                |
-| ENABLE_FLASHLIGHT                      | 启用顶部手电筒LED灯（开启，闪烁，SOS）                                                        |
-| ⌚ **自定义模组**                            |                                                                               |
-| ENABLE_BIG_FREQ                        | 大号字体的频率显示（类似官方泉盛固件）                                                           |
-| ENABLE_KEEP_MEM_NAME                   | 在重新保存内存频道时保持频道名称                                                              |
-| ENABLE_WIDE_RX                         | 全频18MHz至1300MHz接收（尽管前端/功率放大器未设计用于整个范围）                                        |
-| ENABLE_TX_WHEN_AM                      | 当RX设置为AM时允许TX（始终为FM）                                                          |
-| ENABLE_F_CAL_MENU                      | 启用收音机的隐藏频率校准菜单                                                                |
-| ENABLE_CTCSS_TAIL_PHASE_SHIFT          | 使用标准CTCSS尾部相移，而不是QS独有的55Hz音调方法                                                |
-| ENABLE_BOOT_BEEPS                      | 在启动时为用户提供音频反馈，指示音量旋钮的位置                                                       |
-| ENABLE_SHOW_CHARGE_LEVEL               | 在收音机充电时显示电池充电水平                                                               |
-| ENABLE_REVERSE_BAT_SYMBOL              | 在状态栏上镜像电池符号（正极在右侧）                                                            |
-| ENABLE_NO_CODE_SCAN_TIMEOUT            | 禁用32秒CTCSS/DCS扫描超时（按退出按钮而不是等待超时结束扫描                                           |
-| ENABLE_AM_FIX                          | 在AM模式下动态调整前端增益，以帮助防止AM解调器饱和，暂时忽略屏幕上的RSSI级别                                    |
-| ENABLE_SQUELCH_MORE_SENSITIVE          | 将静噪电平稍微调敏感一些                                                                  |
-| ENABLE_FASTER_CHANNEL_SCAN             | 增加频道扫描速度，但静噪调敏度也增加了                                                           |
-| ENABLE_RSSI_BAR                        | 启用以dBm/Sn为单位的RSSI条形图水平，取代小天线符号                                                |
-| ENABLE_AUDIO_BAR                       | 发送时显示音频条级别                                                                    |
-| ENABLE_COPY_CHAN_TO_VFO                | 将当前频道设置复制到频率模式。在频道模式下长按  `1 BAND`                                             |
-| ENABLE_SPECTRUM                        | fagci 频谱分析仪，`F` + `5 NOAA`激活                                                  |
-| ENABLE_REDUCE_LOW_MID_TX_POWER         | 使中等和低功率设置更低                                                                   |
-| ENABLE_BYP_RAW_DEMODULATORS            | 额外的BYP（旁路？）和RAW解调选项，被证明并不十分有用，但如果你想实验的话，它是存在的                                 |
-| ENABLE_SCAN_RANGES                     | 频率扫描的扫描范围模式                                                                   |
-| ENABLE_BLOCK                           | EEPROM上锁                                                                      |
-| ENABLE_WARNING                         | 	    BEEP提示音                                                                  |
-| ENABLE_CUSTOM_SIDEFUNCTIONS            | 自定义侧键功能                                                                       |
-| ENABLE_SIDEFUNCTIONS_SEND              | 自定义侧键功能（侧键发射功能）                                                               |
-| ENABLE_AUDIO_BAR_DEFAULT               | 默认语音条样式                                                                       |
-| 📡 **自动多普勒**                           | [Automatic Doppler](https://github.com/losehu/uv-k5-firmware-custom)          |
-| ENABLE_DOPPLER                         | 自动多普勒功能                                                                       |
-| 📧 **短信**                              | [SMS](https://github.com/joaquimorg/uv-k5-firmware-custom)                    |
-| ENABLE_MESSENGER                       | 发送和接收短文本消息（按键 = `F` + `MENU`）                                                 |
-| ENABLE_MESSENGER_DELIVERY_NOTIFICATION | 如果收到消息，则向发送方发送通知                                                              |
-| ENABLE_MESSENGER_NOTIFICATION          | 在收到消息时播放声音                                                                    |
-| 📱 **MDC1200**                         | [MDC1200](https://github.com/OneOfEleven/uv-k5-firmware-custom)               |
-| ENABLE_MDC1200                         | MDC1200发送功能                                                                   |
-| ENABLE_MDC1200_SHOW_OP_ARG             | MDC显示首尾音参数                                                                    |
-| ENABLE_MDC1200_SIDE_BEEP               | MDC侧音                                                                         |
-| ENABLE_MDC1200_CONTACT                 | MDC联系人                                                                        |
-| 🎛️ **DOCK**                           | [DOCK](https://github.com/nicsure/QuanshengDock)                              |
-| ENABLE_DOCK                            | 允许通过电脑控制手台，无屏幕显示！                                                             |
-| 🚫 **调试**                              |                                                                               |
-| ENABLE_AM_FIX_SHOW_DATA                | 显示AM修复的调试数据                                                                   |
-| ENABLE_AGC_SHOW_DATA                   | 显示ACG参数                                                                       |
-| ENABLE_UART_RW_BK_REGS                 | 添加了两个额外的命令，允许读取和写入BK4819寄存器                                                   |
-| ⚠️ **编译选项**                            |                                                                               |
-| ENABLE_CLANG                           | 实验性质，使用clang而不是gcc构建（如果启用此选项，LTO将被禁用）                                         |
-| ENABLE_SWD                             | 使用CPU的SWD端口，调试/编程时需要                                                          |
-| ENABLE_OVERLAY                         | CPU FLASH相关内容，不需要                                                             |
-| ENABLE_LTO                             | 减小编译固件的大小，但可能会破坏EEPROM读取（启用后OVERLAY将被禁用）                                      |
-
-# 打赏
-
-如果这个项目对您有帮助,可以考虑赞助来支持开发工作。
-
-这是：[打赏名单](https://losehu.github.io/payment-codes/#%E6%94%B6%E6%AC%BE%E7%A0%81) 非常感谢各位的支持！！！
-
-打赏码：
-
-[![打赏码](https://github.com/losehu/uv-k5-firmware-chinese/blob/main/payment/show.png)](https://losehu.github.io/payment-codes/)
-
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=losehu/uv-k5-firmware-custom&type=Date)](https://star-history.com/#losehu/uv-k5-firmware-custom&Date)
-
+请遵守各上游项目的许可证和当地无线电管理规定。仓库许可证见 [`LICENSE`](./LICENSE)。
