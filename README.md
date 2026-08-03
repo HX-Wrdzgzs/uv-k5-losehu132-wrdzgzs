@@ -8,7 +8,7 @@
 
 | 你的目的 | 从这里开始 |
 | --- | --- |
-| 下载并刷写固件 | [当前发布目录](./release/LOSEHU132-bin-20260730/) |
+| 下载并刷写固件 | [当前公开发布目录（不含个人尾音）](./release/LOSEHU132-bin-20260803-public/) |
 | 自己构建固件 | [本地构建](#本地构建) |
 | 查阅中继数据 | [当前数据快照](#当前数据快照) |
 | 参与更新中继 | [全国中继数据协作](#全国中继数据协作) |
@@ -18,6 +18,7 @@
 
 - 固件版本：`LOSEHU132`
 - 构建时间：`2026-07-30`
+- 公开发布：`2026-08-03`（公开包不含个人自定义尾音资源）
 - 目标设备：Quansheng UV-K5 / UV-K6 系列；不同硬件批次和 EEPROM 容量的兼容性需要自行确认
 - 构建环境：Windows + Python 3.13
 - 中继数据：K5DB v3 快照，数据时间 `2026-07-28`
@@ -48,27 +49,60 @@
 
 ## 下载与刷写
 
-当前发布文件位于 [`release/LOSEHU132-bin-20260730/`](./release/LOSEHU132-bin-20260730/)：
+当前公开发布目录：[`release/LOSEHU132-bin-20260803-public/`](./release/LOSEHU132-bin-20260803-public/)。该目录只提供公开固件和中继数据库，不包含个人自定义尾音资源。
 
 | 文件 | 用途 | 大小 | SHA-256 |
 | --- | --- | ---: | --- |
-| [`firmware.packed.bin`](./release/LOSEHU132-bin-20260730/firmware.packed.bin) | 通常用于 K5Web 或兼容的固件写入工具 | 58,474 B | `BB380265614F73D268BA290966F3AB70E6C7E9023505510F0F406529CB6A8DE9` |
-| [`firmware.bin`](./release/LOSEHU132-bin-20260730/firmware.bin) | 未封装的原始固件镜像 | 58,456 B | `C51763BDF93031956DDEADD874DEF0A5855EF24B299B6B1D36BC77AF8E635334` |
-| [`repeaters.bin`](./release/LOSEHU132-bin-20260730/repeaters.bin) | 中继数据附加文件 | 9,904 B | `84CCB5DEEB211DF62467D7B6F5DC19908EC34F96B36F1EEA773F319627070483` |
-| [`tails.bin`](./release/LOSEHU132-bin-20260730/tails.bin) | EEPROM/中继数据附加文件 | 1,906 B | `9A5736CBB7F94C070EAD6351B25CDE489C97C478721CA984571F4C8EDD7F4519` |
+| [`firmware.packed.bin`](./release/LOSEHU132-bin-20260803-public/firmware.packed.bin) | 通常用于 K5Web 或兼容工具刷写 | 58,474 B | `BB380265614F73D268BA290966F3AB70E6C7E9023505510F0F406529CB6A8DE9` |
+| [`firmware.bin`](./release/LOSEHU132-bin-20260803-public/firmware.bin) | 未封装的原始固件镜像 | 58,456 B | `C51763BDF93031956DDEADD874DEF0A5855EF24B299B6B1D36BC77AF8E635334` |
+| [`firmware.stable.packed.bin`](./release/LOSEHU132-bin-20260803-public/firmware.stable.packed.bin) | Stable 封装固件镜像 | 59,126 B | `CC49FB61AC14194F135946A70BB313A8B93D0F212CD9201B87A9A9271ED0240B` |
+| [`firmware.stable.bin`](./release/LOSEHU132-bin-20260803-public/firmware.stable.bin) | Stable 原始固件镜像 | 59,108 B | `0090C982F0BF19A5468BBDE32663BF2F6420A720CDABDA6C046761ECE0858A43` |
+| [`repeaters.bin`](./release/LOSEHU132-bin-20260803-public/repeaters.bin) | K5DB v3 中继数据库 | 9,904 B | `84CCB5DEEB211DF62467D7B6F5DC19908EC34F96B36F1EEA773F319627070483` |
+| [`repeaters.stable.bin`](./release/LOSEHU132-bin-20260803-public/repeaters.stable.bin) | Stable 中继数据库 | 9,904 B | `84CCB5DEEB211DF62467D7B6F5DC19908EC34F96B36F1EEA773F319627070483` |
 
-基本流程：
+公开发布目录中没有 `tails.bin` 或 `tails.stable.bin`。固件本体的自定义尾音入口仍保留；被排除的是个人尾音资源文件。
 
-1. 确认对讲机型号、硬件版本和 EEPROM 容量；
-2. 使用设备支持的工具备份原始 EEPROM 和当前频道；
-3. 校验下载文件的 SHA-256；
-4. 使用 `firmware.packed.bin` 通过 [K5Web](https://k5.vicicode.com/) 或兼容工具刷写；
-5. 重启后检查固件版本、菜单和收发功能，再导入频道数据。
+### 固件刷写
 
-`repeaters.bin` 和 `tails.bin` 是数据附加文件，不是固件镜像。不要把它们直接当作固件刷入对讲机；具体写入方式以对应的写频工具说明为准。
+1. 确认型号、硬件版本和 EEPROM 容量，先用 [K5Web](https://k5.vicicode.com/) 备份配置和校准数据。
+2. 固件升级时让对讲机关机，按住 PTT 开机进入升级模式。
+3. 在 K5Web 的固件页面选择对应的 `firmware.packed.bin`，刷写完成后等待设备自动重启。
+4. 刷完后检查固件版本、菜单、收发和 EEPROM 容量。
 
-刷写固件有使设备无法启动或丢失配置的风险。请不要在电量不足、连接不稳定或型号不确定时操作，也不要在未获授权的频率上发射。
+除固件升级外，数据库写入和备份等操作使用正常开机模式，不要按 PTT 进入升级模式。
 
+### 写入中继数据库（COM4）
+
+`repeaters.bin` 不是固件，不能放到 K5Web 的固件刷写入口。当前 LOSEHU132 工程提供 [`tools/write_eeprom_repeaters.py`](./tools/write_eeprom_repeaters.py)，它会把中继库写入扩展 EEPROM，并逐块读回校验；写入时也会同步写入同目录下的 `tails.bin`。
+
+个人带尾音目录必须同时包含 `repeaters.bin` 和 `tails.bin`。公开 GitHub 目录没有尾音文件，不能直接用来执行这个命令。
+
+先在不连接电台的情况下做文件校验：
+
+```bat
+cd /d <包含 repeaters.bin 和 tails.bin 的目录>
+C:/Python313/python.exe <仓库目录>/tools/write_eeprom_repeaters.py COM4 repeaters.bin
+```
+
+连接写频线、确认电台正常开机后，先做只读比对：
+
+```bat
+C:/Python313/python.exe <仓库目录>/tools/write_eeprom_repeaters.py COM4 repeaters.bin --verify-device
+```
+
+确认端口和文件正确后，才执行实际写入：
+
+```bat
+C:/Python313/python.exe <仓库目录>/tools/write_eeprom_repeaters.py COM4 repeaters.bin --write
+```
+
+完成后再次执行 `--verify-device`。出现 `EEPROM update verified` 或 `Device EEPROM matches` 后，再在电台菜单进入“全国中继”检查。
+
+### 个人带尾音包
+
+个人版不上传到 GitHub，只保存在本机下载文件夹。普通版本对应 `firmware.bin` + `tails.bin`，Stable 版本对应 `firmware.stable.bin` + `tails.stable.bin`。`tails.bin` 和 `tails.stable.bin` 是资源文件，不是固件镜像。
+
+刷写或写库前请保证电池充足、写频线插到底，并保留原始 EEPROM 备份。不要在型号或 EEPROM 容量不确定时尝试高地址数据库写入。
 ## 本地构建
 
 ### Windows 构建
