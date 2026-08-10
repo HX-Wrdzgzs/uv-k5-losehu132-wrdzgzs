@@ -1,0 +1,59 @@
+name: release-public-firmware
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Public release version, for example LOSEHU132-bin-20260810-public"
+        required: true
+        type: string
+      source_dir:
+        description: "Existing public package directory in this repository"
+        required: true
+        default: "release/LOSEHU132-bin-20260803-public"
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Select public package
+        id: source
+        env:
+          SOURCE_DIR: ${{ inputs.source_dir || 'release/LOSEHU132-bin-20260803-public' }}
+        run: echo "path=$SOURCE_DIR" >> "$GITHUB_OUTPUT"
+      - name: Validate public package boundary
+        run: |
+          python tools/check_public_release.py "${{ steps.source.outputs.path }}"
+      - name: Package public release
+        env:
+          RELEASE_VERSION: ${{ inputs.version || github.ref_name }}
+        run: |
+          python tools/package_release.py \
+            --source "${{ steps.source.outputs.path }}" \
+            --output "$RUNNER_TEMP/public-release" \
+            --version "$RELEASE_VERSION"
+          test ! -e "$RUNNER_TEMP/public-release/tails.bin"
+          test ! -e "$RUNNER_TEMP/public-release/tails.stable.bin"
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ inputs.version || github.ref_name }}
+          tag_name: ${{ inputs.version || github.ref_name }}
+          files: |
+            ${{ runner.temp }}/public-release/*.bin
+            ${{ runner.temp }}/public-release/*.json
+            ${{ runner.temp }}/public-release/*.txt
+          body: |
+            公版固件包不包含维护者个人使用的 tails.bin / tails.stable.bin。
+            固件中的自定义尾音入口保留；尾音资源文件不随公版发布。
