@@ -193,3 +193,25 @@ release/             已核验的版本发布产物
 - [LOSEHU 更大固件系统](https://github.com/losehu/uv-k5-system-custom/)
 
 请遵守各上游项目的许可证和当地无线电管理规定。仓库许可证见 [`LICENSE`](./LICENSE)。
+
+## 公版固件与中继数据
+
+本仓库的公开发布目录只放公共固件和中继数据库，不包含维护者个人尾音资源。`tails.bin` 和 `tails.stable.bin` 不进入公开包；固件里的自定义尾音功能入口保留，删除的是资源文件而不是功能入口。
+
+公版发布前使用白名单打包并检查：
+
+```powershell
+python tools/package_release.py --source . --output .\public-release
+python tools/check_public_release.py .\public-release
+```
+
+默认打包结果不含尾音资源。`--include-tails` 只允许个人本地包使用，禁止把该结果上传到 GitHub Release。发布目录会生成 `release-manifest.json` 和 `SHA256SUMS.txt`；`.github/workflows/validate-public-release.yml` 会阻止把尾音文件带入 `release/LOSEHU132-bin-20260803-public`。
+
+中继数据库写入前先验证，默认只读：
+
+```powershell
+python tools/update_repeater_db.py COM4 repeaters.bin --verify-device
+python tools/update_repeater_db.py COM4 repeaters.bin --write --confirm
+```
+
+备份和恢复工具默认保护 RSSI 校准区；未经明确确认不会写 EEPROM 或校准数据。网站数据协作站：[`HX-Wrdzgzs/uv-k5-repeater-web`](https://github.com/HX-Wrdzgzs/uv-k5-repeater-web)。
