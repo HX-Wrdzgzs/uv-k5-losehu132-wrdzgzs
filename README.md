@@ -8,7 +8,7 @@
 
 | 你的目的 | 从这里开始 |
 | --- | --- |
-| 下载并刷写固件 | [2026-08-20 双版本发布](./release/LOSEHU132-bin-20260820-final2-public/) |
+| 下载并刷写固件 | [2026-08-20 尾音开头修正版双版本发布](./release/LOSEHU132-bin-20260820-final3-public/) |
 | 自己构建固件 | [本地构建](#本地构建) |
 | 查阅中继数据 | [当前数据快照](#当前数据快照) |
 | 参与更新中继 | [全国中继数据协作](#全国中继数据协作) |
@@ -18,11 +18,12 @@
 
 - 固件版本：`LOSEHU132`
 - 构建时间：`2026-08-20`
-- GitHub Release：`LOSEHU132-bin-20260820-final2`
+- GitHub Release：`LOSEHU132-bin-20260820-final3`
 - 发布变体：公共无私人尾音版 + 个人带尾音版；两者都保留尾音菜单入口
 - 目标设备：Quansheng UV-K5 / UV-K6 系列；不同硬件批次和 EEPROM 容量的兼容性需要自行确认
 - 构建环境：Windows + Python 3.13
 - 中继数据：K5DB v3 快照，数据时间 `2026-07-28`
+- 带尾音修正：裁掉原始音频开头约 180 ms 的低电平、不稳定频率跟踪段，避免开场颤抖音
 
 固件后缀代表不同的功能和容量组合。实际可用功能以源码中的编译选项、设备硬件和最终固件版本为准：
 
@@ -50,21 +51,21 @@
 
 ## 下载与刷写
 
-最新发布目录与 GitHub Release：[`LOSEHU132-bin-20260820-final2`](https://github.com/HX-Wrdzgzs/uv-k5-losehu132-wrdzgzs/releases/tag/LOSEHU132-bin-20260820-final2)。刷写时优先选择带 `.packed.bin` 后缀的文件。
+最新发布目录与 GitHub Release：[`LOSEHU132-bin-20260820-final3`](https://github.com/HX-Wrdzgzs/uv-k5-losehu132-wrdzgzs/releases/tag/LOSEHU132-bin-20260820-final3)。刷写时优先选择带 `.packed.bin` 后缀的文件。
 
 | 版本 | 尾音状态 | 刷写镜像 | 原始镜像 |
 | --- | --- | --- | --- |
-| `public` | **无私人尾音**，保留入口并使用普通 Roger 尾音 | [`...-public.packed.bin`](./release/LOSEHU132-bin-20260820-final2-public/LOSEHU132-bin-20260820-final2-public.packed.bin) | [`...-public.bin`](./release/LOSEHU132-bin-20260820-final2-public/LOSEHU132-bin-20260820-final2-public.bin) |
-| `tail` | **带个人尾音**，内嵌修正后的 `1.wav` 单音近似 | [`...-tail.packed.bin`](./release/LOSEHU132-bin-20260820-final2-tail/LOSEHU132-bin-20260820-final2-tail.packed.bin) | [`...-tail.bin`](./release/LOSEHU132-bin-20260820-final2-tail/LOSEHU132-bin-20260820-final2-tail.bin) |
+| `public` | **无私人尾音**，保留入口并使用普通 Roger 尾音 | [`...-public.packed.bin`](./release/LOSEHU132-bin-20260820-final3-public/LOSEHU132-bin-20260820-final3-public.packed.bin) | [`...-public.bin`](./release/LOSEHU132-bin-20260820-final3-public/LOSEHU132-bin-20260820-final3-public.bin) |
+| `tail` | **带个人尾音**，内嵌过滤开场颤音后的 `1.wav` 单音近似，约 1.61 秒 | [`...-tail.packed.bin`](./release/LOSEHU132-bin-20260820-final3-tail/LOSEHU132-bin-20260820-final3-tail.packed.bin) | [`...-tail.bin`](./release/LOSEHU132-bin-20260820-final3-tail/LOSEHU132-bin-20260820-final3-tail.bin) |
 
 两个版本都包含同一份 K5DB v3 中继数据库和校验清单。个人尾音已经编译进 `tail` 固件，不再使用外部 `tails.bin`；原始私人 `1.wav` 不上传仓库。数据库文件不是固件，不能放进 K5Web 固件刷写入口。
 
 | 数据文件 | 用途 | SHA-256 |
 | --- | --- | --- |
-| [`repeaters.bin`](./release/LOSEHU132-bin-20260820-final2-public/repeaters.bin) | K5DB v3 中继数据库 | `E164021D9F52855917D4878647006273B2F90D035FF16182F96C2FE82E1AB721` |
-| [`repeaters.build.json`](./release/LOSEHU132-bin-20260820-final2-public/repeaters.build.json) | 数据构建记录和来源信息 | `60AD5F503C1F1EC241E7D1A27237E0EE1945E42F9D4EAFFF55A0DD96F665C9A0` |
+| [`repeaters.bin`](./release/LOSEHU132-bin-20260820-final3-public/repeaters.bin) | K5DB v3 中继数据库 | `E164021D9F52855917D4878647006273B2F90D035FF16182F96C2FE82E1AB721` |
+| [`repeaters.build.json`](./release/LOSEHU132-bin-20260820-final3-public/repeaters.build.json) | 数据构建记录和来源信息 | `60AD5F503C1F1EC241E7D1A27237E0EE1945E42F9D4EAFFF55A0DD96F665C9A0` |
 
-完整文件哈希见两个目录中的 [`SHA256SUMS.txt`](./release/LOSEHU132-bin-20260820-final2-public/SHA256SUMS.txt) 和 [`SHA256SUMS.txt`](./release/LOSEHU132-bin-20260820-final2-tail/SHA256SUMS.txt)。
+完整文件哈希见两个目录中的 [`SHA256SUMS.txt`](./release/LOSEHU132-bin-20260820-final3-public/SHA256SUMS.txt) 和 [`SHA256SUMS.txt`](./release/LOSEHU132-bin-20260820-final3-tail/SHA256SUMS.txt)。
 
 ### 固件刷写
 
@@ -103,7 +104,7 @@ C:/Python313/python.exe <仓库目录>/tools/write_eeprom_repeaters.py COM4 repe
 ### 两个固件版本如何选择
 
 - `public`：无你的私人尾音，适合公开分享和普通用户刷写；
-- `tail`：带你的个人尾音，已上传到本仓库 Release，并在文件名中明确标为 `tail`；
+- `tail`：带你的个人尾音，已过滤开场颤抖音并上传到本仓库 Release，文件名明确标为 `tail`；
 - `MDC 尾音`仍然是 MDC 协议尾音，不等于个人 `1.wav` 尾音；
 - 两个版本的 `repeaters.bin` 相同，数据库需要通过 COM4 单独写入。
 

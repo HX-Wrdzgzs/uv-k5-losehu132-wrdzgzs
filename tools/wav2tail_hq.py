@@ -21,8 +21,12 @@ HOP_SIZE = 256
 MIN_FREQ = 800
 MAX_FREQ = 2600
 MAX_SEGMENTS = 64
-# Keep the opening of a low-level whistle audible after BK4819 quantisation.
+# Keep retained low-level whistle transitions audible after BK4819 quantisation.
 MIN_AUDIBLE_GAIN = 24
+# Do not turn the low-level, unstable pitch-tracking pre-roll into an audible
+# trill. The onset must stay above this fraction of the peak for a few frames.
+OPENING_ONSET_RATIO = 0.05
+OPENING_ONSET_STABLE_FRAMES = 3
 # This delay is outside the source WAV timeline and only stabilises the TX path.
 TAIL_TX_SETUP_DELAY_MS = 20
 
@@ -59,6 +63,26 @@ def interpolated_frequency(spectrum: np.ndarray, index: int, rate: int) -> float
         0.5 * (left - right) / denominator
     )
     return (index + max(-0.5, min(0.5, delta))) * rate / FRAME_SIZE
+
+
+def find_opening_onset(
+    raw: list[tuple[float, float, int]],
+    max_rms: float,
+    noise_floor: float,
+    onset_ratio: float = OPENING_ONSET_RATIO,
+    stable_frames: int = OPENING_ONSET_STABLE_FRAMES,
+) -> int:
+    """Find the first stable, audible frame and drop unstable pre-roll."""
+    if not raw or stable_frames < 1:
+        return 0
+    threshold = max(max_rms * onset_ratio, noise_floor * 4.0)
+    last_start = len(raw) - stable_frames + 1
+    for start in range(max(0, last_start)):
+        if all(item[0] >= threshold for item in raw[start:start + stable_frames]):
+            return start
+    # A completely quiet or unusual source is safer left at its original start
+    # than silently shortened based on an unreliable onset guess.
+    return 0
 
 
 def analyse(
@@ -106,6 +130,7 @@ def analyse(
     # estimate so those frames become real mute intervals instead.
     noise_floor = float(np.percentile([item[0] for item in raw], 20))
     silence_threshold = max(max_rms * 0.01, noise_floor * 4.0)
+    opening_onset = find_opening_onset(raw, max_rms, noise_floor)
 
     frames: list[Segment] = []
     for rms, frequency, frame_ms in raw:
@@ -118,7 +143,10 @@ def analyse(
         # quantisation avoids wasting segments on inaudible sub-step changes.
         frames.append(Segment(round(frequency / 10) * 10, gain, frame_ms))
 
-    target_ms = round(len(audio) * 1000 / rate)
+    if opening_onset:
+        frames = frames[opening_onset:]
+    trimmed_ms = sum(item[2] for item in raw[:opening_onset])
+    target_ms = round(len(audio) * 1000 / rate) - trimmed_ms
     frames[-1].ms = max(1, frames[-1].ms + target_ms - sum(x.ms for x in frames))
     result = compress(frames, max_segments)
     if sum(item.ms for item in result) != target_ms:
@@ -189,6 +217,7 @@ def generate(source: Path, segments: list[Segment], total_ms: int) -> str:
  *
  * BK4819 只能合成单音，以下序列保留 1.wav 的主频率、音量包络和静音段，
  * 是可编译进固件的近似，不是 PCM 播放。
+ * 开头低电平且不稳定的频率跟踪段已裁掉，避免开场颤音。
  * 公版保留尾音菜单入口，但不嵌入个人尾音；个人构建才启用本数组。
  */
 
@@ -214,7 +243,7 @@ void BK4819_PlayCustomTail(void)
     BK4819_EnterTxMute();
     BK4819_SetAF(BK4819_AF_MUTE);
     BK4819_EnableTXLink();
-    /* Keep the source WAV timing intact; this delay is only TX-chain setup. */
+    /* Stabilise the TX chain before the retained tail starts. */
     SYSTEM_DelayMs({TAIL_TX_SETUP_DELAY_MS});
 
     for (uint8_t i = 0; i < TAIL_COUNT; i++)

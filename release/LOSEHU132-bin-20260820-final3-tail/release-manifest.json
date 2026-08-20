@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "version": "LOSEHU132-bin-20260820-final3",
+  "package_kind": "personal",
+  "firmware_variant": "tail",
+  "tail_firmware_included": true,
+  "tail_resource_included": false,
+  "tail_entry_point": "embedded 1.wav single-tone/gain/silence sequence",
+  "files": [
+    {
+      "name": "repeaters.bin",
+      "size": 9856,
+      "sha256": "e164021d9f52855917d4878647006273b2f90d035ff16182f96c2fe82e1ab721"
+    },
+    {
+      "name": "repeaters.build.json",
+      "size": 427650,
+      "sha256": "60ad5f503c1f1ec241e7d1a27237e0ee1945e42f9d4eafff55a0dd96f665c9a0"
+    },
+    {
+      "name": "LOSEHU132-bin-20260820-final3-tail.bin",
+      "size": 56216,
+      "sha256": "608963f988846714d5e53af22ee75e21020d1cba71dc0ffe11f279aef6e7e198"
+    },
+    {
+      "name": "LOSEHU132-bin-20260820-final3-tail.packed.bin",
+      "size": 56234,
+      "sha256": "4662076f35031ce33a3c0669f000fc7faece232941a97962577bb11848d5d5fa"
+    }
+  ]
+}

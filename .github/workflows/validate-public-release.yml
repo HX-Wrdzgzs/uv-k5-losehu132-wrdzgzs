@@ -27,4 +27,4 @@ jobs:
       - name: Check public package boundary
         run: |
           python tools/check_public_release.py release/LOSEHU132-bin-20260803-public
-          python tools/check_public_release.py release/LOSEHU132-bin-20260820-final2-public
+          python tools/check_public_release.py release/LOSEHU132-bin-20260820-final3-public
