@@ -1,0 +1,3 @@
+# Published database manifests contain byte-level SHA-256 records.
+# Keep generated JSON bytes stable across Windows and Linux checkouts.
+/release/**/repeaters.build.json -text
