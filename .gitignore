@@ -10,3 +10,8 @@ __pycache__/
 .pytest_cache/
 *.pyc
 nul
+
+# Personal tail sources stay local; the public and tail firmware already embed
+# the selected behavior and do not need the original WAV or external tails.bin.
+/1.wav
+**/tails.bin
