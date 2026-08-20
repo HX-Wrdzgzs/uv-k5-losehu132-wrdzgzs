@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "version": "LOSEHU132-bin-20260820-final2",
+  "package_kind": "public",
+  "firmware_variant": "public",
+  "tail_firmware_included": false,
+  "tail_resource_included": false,
+  "tail_entry_point": "menu entry retained; normal Roger tone fallback",
+  "files": [
+    {
+      "name": "repeaters.bin",
+      "size": 9856,
+      "sha256": "e164021d9f52855917d4878647006273b2f90d035ff16182f96c2fe82e1ab721"
+    },
+    {
+      "name": "repeaters.build.json",
+      "size": 427650,
+      "sha256": "60ad5f503c1f1ec241e7d1a27237e0ee1945e42f9d4eafff55a0dd96f665c9a0"
+    },
+    {
+      "name": "LOSEHU132-bin-20260820-final2-public.bin",
+      "size": 55896,
+      "sha256": "78ffd52dbcf73dd9794fe9bb25fce33bf5c45fe01932725ccb76b44f54c4cdaa"
+    },
+    {
+      "name": "LOSEHU132-bin-20260820-final2-public.packed.bin",
+      "size": 55914,
+      "sha256": "7b4325ce22aa71cfc96afabb93615d305333469ecd1b30d9f085acd98decfe2f"
+    }
+  ]
+}

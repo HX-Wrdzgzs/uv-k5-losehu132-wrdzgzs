@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Create a reproducible public or personal UV-K5 release package.
 
-The public package deliberately excludes the private tail-tone resources.  The
-firmware feature entry point remains in the firmware; only the external
-``tails*.bin`` resources are omitted from the public artifact.
+The two releases differ in the firmware image itself.  The public image keeps
+the Roger/tail menu entry but falls back to the normal Roger tone.  The
+personal image embeds the single-tone frequency, gain, and silence sequence
+generated from ``1.wav`` at build time.  No external ``tails.bin`` file is
+used or copied by either package.
 """
 
 from __future__ import annotations
@@ -16,17 +18,11 @@ import shutil
 from pathlib import Path
 
 
-PUBLIC_FILES = (
-    "firmware.bin",
-    "firmware.packed.bin",
-    "firmware.stable.bin",
-    "firmware.stable.packed.bin",
+DATA_FILES = (
     "repeaters.bin",
-    "repeaters.stable.bin",
-    "repeaters_manifest.json",
     "repeaters.build.json",
 )
-TAIL_FILES = ("tails.bin", "tails.stable.bin")
+FIRMWARE_FILES = ("firmware.bin", "firmware.packed.bin")
 
 
 def sha256(path: Path) -> str:
@@ -40,12 +36,17 @@ def sha256(path: Path) -> str:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, default=Path("."))
+    parser.add_argument(
+        "--firmware-dir",
+        type=Path,
+        help="directory containing the already-built firmware.bin files; defaults to --source",
+    )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--version", default="local")
     parser.add_argument(
         "--include-tails",
         action="store_true",
-        help="include the private tails.bin resources; never use this for a public release",
+        help="label this package as the personal firmware variant with the embedded 1.wav whistle",
     )
     return parser.parse_args()
 
@@ -69,13 +70,19 @@ def ensure_output_is_external(source: Path, output: Path) -> None:
             )
 
 
-def build_package(source: Path, output: Path, version: str, include_tails: bool) -> dict:
+def build_package(
+    source: Path,
+    output: Path,
+    version: str,
+    include_tails: bool,
+    firmware_source: Path | None = None,
+) -> dict:
     ensure_output_is_external(source, output)
     output.mkdir(parents=True, exist_ok=True)
 
-    selected = list(PUBLIC_FILES)
-    if include_tails:
-        selected.extend(TAIL_FILES)
+    firmware_source = (firmware_source or source).resolve()
+    variant = "tail" if include_tails else "public"
+    selected = list(DATA_FILES)
 
     files = []
     for name in selected:
@@ -89,15 +96,27 @@ def build_package(source: Path, output: Path, version: str, include_tails: bool)
         shutil.copy2(source_path, target)
         files.append({"name": name, "size": target.stat().st_size, "sha256": sha256(target)})
 
-    if not include_tails and any(item["name"].startswith("tails") for item in files):
-        raise AssertionError("public release unexpectedly contains tail resources")
+    for firmware_name in FIRMWARE_FILES:
+        firmware_path = firmware_source / firmware_name
+        if not firmware_path.is_file():
+            raise FileNotFoundError(f"required firmware file is missing: {firmware_path}")
+        output_name = f"{version}-{variant}" + firmware_name.removeprefix("firmware")
+        target = output / output_name
+        shutil.copy2(firmware_path, target)
+        files.append({"name": output_name, "size": target.stat().st_size, "sha256": sha256(target)})
 
     manifest = {
         "schema": 1,
         "version": version,
         "package_kind": "personal" if include_tails else "public",
-        "tail_resource_included": include_tails,
-        "tail_entry_point": "retained in firmware; external tail resource intentionally separate",
+        "firmware_variant": variant,
+        "tail_firmware_included": include_tails,
+        "tail_resource_included": False,
+        "tail_entry_point": (
+            "embedded 1.wav single-tone/gain/silence sequence"
+            if include_tails
+            else "menu entry retained; normal Roger tone fallback"
+        ),
         "files": files,
     }
     (output / "release-manifest.json").write_text(
@@ -113,7 +132,8 @@ def main() -> int:
     args = parse_args()
     source = args.source.resolve()
     output = args.output.resolve()
-    manifest = build_package(source, output, args.version, args.include_tails)
+    firmware_source = args.firmware_dir.resolve() if args.firmware_dir else source
+    manifest = build_package(source, output, args.version, args.include_tails, firmware_source)
     print(
         f"Created {manifest['package_kind']} release {manifest['version']}: "
         f"{len(manifest['files'])} files -> {output}"

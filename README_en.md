@@ -2,6 +2,17 @@
 
 **语言版本: [English](./README_en.md), [中文](./README.md).**
 
+## Latest release: LOSEHU132-bin-20260820-final2
+
+The GitHub Release contains two clearly separated firmware variants:
+
+| Variant | Tail behavior | Packed image |
+| --- | --- | --- |
+| `public` | No private tail; the menu entry remains and uses the normal Roger tone | [`...-public.packed.bin`](./release/LOSEHU132-bin-20260820-final2-public/LOSEHU132-bin-20260820-final2-public.packed.bin) |
+| `tail` | Personal `1.wav` single-tone/envelope approximation embedded in the firmware | [`...-tail.packed.bin`](./release/LOSEHU132-bin-20260820-final2-tail/LOSEHU132-bin-20260820-final2-tail.packed.bin) |
+
+Use the `public` image for a no-private-tail installation and the `tail` image for the personal-tail installation. The original `1.wav` and legacy external `tails.bin` are not uploaded; the personal tail is compiled into the `tail` firmware. `repeaters.bin` is a separate K5DB v3 database and must be written through the database tool, not the firmware flasher. See the [Chinese release instructions](./README.md) for COM4 and database details.
+
 # [K5Web]( https://k5.vicicode.com/)
 * Supports online firmware functionality compilation, no need to install the compilation environment!!
 * Doppler satellite, boot image text, SI4732 SSB patch frequency writing method!

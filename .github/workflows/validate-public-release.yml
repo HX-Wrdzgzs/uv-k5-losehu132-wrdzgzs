@@ -25,4 +25,6 @@ jobs:
         with:
           python-version: "3.12"
       - name: Check public package boundary
-        run: python tools/check_public_release.py release/LOSEHU132-bin-20260803-public
+        run: |
+          python tools/check_public_release.py release/LOSEHU132-bin-20260803-public
+          python tools/check_public_release.py release/LOSEHU132-bin-20260820-final2-public

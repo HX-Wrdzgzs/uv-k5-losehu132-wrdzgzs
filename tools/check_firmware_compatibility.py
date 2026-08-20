@@ -12,9 +12,9 @@ import json
 from pathlib import Path
 
 try:
-    from .write_eeprom_repeaters import validate_database, validate_tail_blob
+    from .write_eeprom_repeaters import validate_database
 except ImportError:  # pragma: no cover - direct script execution
-    from write_eeprom_repeaters import validate_database, validate_tail_blob
+    from write_eeprom_repeaters import validate_database
 
 
 FLASH_BYTES = 60 * 1024
@@ -25,8 +25,6 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--firmware", type=Path, required=True)
     parser.add_argument("--database", type=Path, required=True)
-    parser.add_argument("--tails", type=Path)
-    parser.add_argument("--require-tails", action="store_true")
     parser.add_argument("--json", action="store_true", dest="as_json")
     return parser.parse_args()
 
@@ -45,14 +43,8 @@ def check(args: argparse.Namespace) -> dict:
     result = {
         "firmware": {"path": str(args.firmware), "size": len(firmware), "limit": limit},
         "database": {"path": str(args.database), "size": len(database), "format": "K5DB v3"},
-        "tail_resource": None,
         "device_probe": "not_run",
     }
-    if args.tails:
-        tails = validate_tail_blob(args.tails)
-        result["tail_resource"] = {"path": str(args.tails), "size": len(tails)}
-    elif args.require_tails:
-        raise ValueError("--require-tails was specified but --tails was not provided")
     return result
 
 

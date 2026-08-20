@@ -2,8 +2,10 @@
 """Write repeaters.bin to the UV-K5 expanded EEPROM with read-back verification.
 
 The script uses the firmware's normal encrypted serial protocol and the custom
-0x052B/0x0538 high-address commands. It defaults to validation-only mode; pass
---write explicitly to modify EEPROM.
+0x052B/0x0538 high-address commands. It writes the database only: the two
+firmware variants carry their own tail behavior, so no ``tails.bin`` resource
+is read or written. It defaults to validation-only mode; pass ``--write``
+explicitly to modify EEPROM.
 """
 
 from __future__ import annotations
@@ -29,10 +31,6 @@ REGION_MAGIC = b"K5RI"
 DB_VERSION = 3
 DB_ENTRY_SIZE = 16
 EEPROM_START_ADDRESS = 0x40000
-TAILS_START_ADDRESS = 0x43000
-TAIL_HEADER_FORMAT = "<4sBBHHHHH"
-TAIL_HEADER_SIZE = struct.calcsize(TAIL_HEADER_FORMAT)
-TAIL_MAGIC = b"K5TL"
 EEPROM_DATA_END_ADDRESS = 0x7BFFF
 DEFAULT_CHUNK_SIZE = 64
 XOR_TABLE = bytes((22, 108, 20, 230, 46, 145, 13, 64, 33, 53, 213, 64, 19, 3, 233, 128))
@@ -195,34 +193,6 @@ def validate_database(path: Path, start_address: int) -> bytes:
     return data
 
 
-def validate_tail_blob(path: Path) -> bytes:
-    data = path.read_bytes()
-    if len(data) < TAIL_HEADER_SIZE:
-        raise ValueError("tails.bin is shorter than its header")
-    magic, version, segment_size, rll_count, rfg_count, rll_offset, rfg_offset, payload_crc = struct.unpack_from(
-        TAIL_HEADER_FORMAT, data, 0
-    )
-    if magic != TAIL_MAGIC or version != 1 or segment_size != 7:
-        raise ValueError("unsupported tail resource format")
-    if not (1 <= rll_count <= 300 and rfg_count == 0):
-        raise ValueError("invalid RLL-only segment count")
-    if rll_offset != TAIL_HEADER_SIZE or rfg_offset != rll_offset + rll_count * segment_size:
-        raise ValueError("invalid tail resource offsets")
-    expected_size = rfg_offset + rfg_count * segment_size
-    if expected_size != len(data):
-        raise ValueError(f"tail resource size mismatch: expected {expected_size}, got {len(data)}")
-    if crc16_xmodem(data[TAIL_HEADER_SIZE:]) != payload_crc:
-        raise ValueError("tail resource CRC16 mismatch")
-    end_address = TAILS_START_ADDRESS + len(data) - 1
-    if end_address > EEPROM_DATA_END_ADDRESS:
-        raise ValueError("tail resource exceeds expanded EEPROM data range")
-    print(
-        f"Validated {path}: RLL {rll_count} segments, "
-        f"{len(data)} bytes, EEPROM 0x{TAILS_START_ADDRESS:05X}~0x{end_address:05X}"
-    )
-    return data
-
-
 def split_blocks(data: bytes, start_address: int, chunk_size: int):
     offset = 0
     while offset < len(data):
@@ -295,8 +265,6 @@ def main() -> int:
     args = parse_args()
     try:
         data = validate_database(args.database, args.address)
-        tails_path = Path("tails.bin")
-        tails_data = validate_tail_blob(tails_path)
         if not 8 <= args.chunk_size <= 120:
             raise ValueError("chunk size must be between 8 and 120 bytes")
         if not args.write and not args.verify_device:
@@ -317,55 +285,44 @@ def main() -> int:
             print(f"Connected to firmware: {version}")
 
             if args.verify_device:
-                for resource_path, expected, start_address in (
-                    (args.database, data, args.address),
-                    (tails_path, tails_data, TAILS_START_ADDRESS),
-                ):
-                    device_data = read_device_database(client, expected, start_address, args.chunk_size)
-                    mismatch = first_mismatch(expected, device_data)
-                    if mismatch is not None:
-                        if resource_path == args.database:
-                            print(f"Expected header: {format_database_header(expected)}", file=sys.stderr)
-                            print(f"Device header:   {format_database_header(device_data)}", file=sys.stderr)
-                        if mismatch < len(expected) and mismatch < len(device_data):
-                            raise ProtocolError(
-                                f"device mismatch at 0x{start_address + mismatch:05X}: "
-                                f"expected 0x{expected[mismatch]:02X}, got 0x{device_data[mismatch]:02X}"
-                            )
+                device_data = read_device_database(client, data, args.address, args.chunk_size)
+                mismatch = first_mismatch(data, device_data)
+                if mismatch is not None:
+                    print(f"Expected header: {format_database_header(data)}", file=sys.stderr)
+                    print(f"Device header:   {format_database_header(device_data)}", file=sys.stderr)
+                    if mismatch < len(data) and mismatch < len(device_data):
                         raise ProtocolError(
-                            f"device length mismatch at 0x{start_address + mismatch:05X}: "
-                            f"expected {len(expected)} bytes, got {len(device_data)}"
+                            f"device mismatch at 0x{args.address + mismatch:05X}: "
+                            f"expected 0x{data[mismatch]:02X}, got 0x{device_data[mismatch]:02X}"
                         )
-                    print(
-                        f"Device EEPROM matches {resource_path} exactly: {len(expected)} bytes at "
-                        f"0x{start_address:05X}~0x{start_address + len(expected) - 1:05X}."
+                    raise ProtocolError(
+                        f"device length mismatch at 0x{args.address + mismatch:05X}: "
+                        f"expected {len(data)} bytes, got {len(device_data)}"
                     )
+                print(
+                    f"Device EEPROM matches {args.database} exactly: {len(data)} bytes at "
+                    f"0x{args.address:05X}~0x{args.address + len(data) - 1:05X}."
+                )
                 return 0
 
             written = 0
-            resources = (
-                (args.database, data, args.address),
-                (tails_path, tails_data, TAILS_START_ADDRESS),
-            )
-            total_size = sum(len(resource) for _, resource, _ in resources)
-            for resource_path, resource, start_address in resources:
-                print(f"Writing {resource_path} at 0x{start_address:05X}")
-                for address, block in split_blocks(resource, start_address, args.chunk_size):
-                    client.write(address, block)
-                    time.sleep(0.012)
-                    read_back = client.read(address, len(block))
-                    if read_back != block:
-                        mismatch = next(
-                            index for index, (expected, actual) in enumerate(zip(block, read_back)) if expected != actual
-                        )
-                        raise ProtocolError(
-                            f"verification failed at 0x{address + mismatch:05X}: "
-                            f"expected 0x{block[mismatch]:02X}, got 0x{read_back[mismatch]:02X}"
-                        )
-                    written += len(block)
-                    percent = written * 100 // total_size
-                    print(f"\rVerified {percent:3d}%  0x{address:05X}", end="", flush=True)
-                print()
+            print(f"Writing {args.database} at 0x{args.address:05X}")
+            for address, block in split_blocks(data, args.address, args.chunk_size):
+                client.write(address, block)
+                time.sleep(0.012)
+                read_back = client.read(address, len(block))
+                if read_back != block:
+                    mismatch = next(
+                        index for index, (expected, actual) in enumerate(zip(block, read_back)) if expected != actual
+                    )
+                    raise ProtocolError(
+                        f"verification failed at 0x{address + mismatch:05X}: "
+                        f"expected 0x{block[mismatch]:02X}, got 0x{read_back[mismatch]:02X}"
+                    )
+                written += len(block)
+                percent = written * 100 // len(data)
+                print(f"\rVerified {percent:3d}%  0x{address:05X}", end="", flush=True)
+            print()
 
         print(f"EEPROM update verified: {written} bytes written and read back successfully.")
         return 0

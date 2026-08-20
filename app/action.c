@@ -120,7 +120,8 @@ void ACTION_Power(void) {
     if (++gTxVfo->OUTPUT_POWER > OUTPUT_POWER_HIGH)
         gTxVfo->OUTPUT_POWER = OUTPUT_POWER_LOW;
 
-    gRequestSaveChannel = 1;
+    // Power is stored in the memory-channel state byte; mode 2 persists it.
+    gRequestSaveChannel = 2;
     gRequestDisplayScreen = gScreenToDisplay;
 #ifdef ENABLE_VOICE
     gAnotherVoiceID   = VOICE_ID_POWER;

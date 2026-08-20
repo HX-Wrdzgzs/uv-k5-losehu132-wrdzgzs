@@ -8,7 +8,7 @@
 
 | 你的目的 | 从这里开始 |
 | --- | --- |
-| 下载并刷写固件 | [当前公开发布目录（不含个人尾音）](./release/LOSEHU132-bin-20260803-public/) |
+| 下载并刷写固件 | [2026-08-20 双版本发布](./release/LOSEHU132-bin-20260820-final2-public/) |
 | 自己构建固件 | [本地构建](#本地构建) |
 | 查阅中继数据 | [当前数据快照](#当前数据快照) |
 | 参与更新中继 | [全国中继数据协作](#全国中继数据协作) |
@@ -17,8 +17,9 @@
 ## 当前版本
 
 - 固件版本：`LOSEHU132`
-- 构建时间：`2026-07-30`
-- 公开发布：`2026-08-03`（公开包不含个人自定义尾音资源）
+- 构建时间：`2026-08-20`
+- GitHub Release：`LOSEHU132-bin-20260820-final2`
+- 发布变体：公共无私人尾音版 + 个人带尾音版；两者都保留尾音菜单入口
 - 目标设备：Quansheng UV-K5 / UV-K6 系列；不同硬件批次和 EEPROM 容量的兼容性需要自行确认
 - 构建环境：Windows + Python 3.13
 - 中继数据：K5DB v3 快照，数据时间 `2026-07-28`
@@ -49,18 +50,21 @@
 
 ## 下载与刷写
 
-当前公开发布目录：[`release/LOSEHU132-bin-20260803-public/`](./release/LOSEHU132-bin-20260803-public/)。该目录只提供公开固件和中继数据库，不包含个人自定义尾音资源。
+最新发布目录与 GitHub Release：[`LOSEHU132-bin-20260820-final2`](https://github.com/HX-Wrdzgzs/uv-k5-losehu132-wrdzgzs/releases/tag/LOSEHU132-bin-20260820-final2)。刷写时优先选择带 `.packed.bin` 后缀的文件。
 
-| 文件 | 用途 | 大小 | SHA-256 |
-| --- | --- | ---: | --- |
-| [`firmware.packed.bin`](./release/LOSEHU132-bin-20260803-public/firmware.packed.bin) | 通常用于 K5Web 或兼容工具刷写 | 58,474 B | `BB380265614F73D268BA290966F3AB70E6C7E9023505510F0F406529CB6A8DE9` |
-| [`firmware.bin`](./release/LOSEHU132-bin-20260803-public/firmware.bin) | 未封装的原始固件镜像 | 58,456 B | `C51763BDF93031956DDEADD874DEF0A5855EF24B299B6B1D36BC77AF8E635334` |
-| [`firmware.stable.packed.bin`](./release/LOSEHU132-bin-20260803-public/firmware.stable.packed.bin) | Stable 封装固件镜像 | 59,126 B | `CC49FB61AC14194F135946A70BB313A8B93D0F212CD9201B87A9A9271ED0240B` |
-| [`firmware.stable.bin`](./release/LOSEHU132-bin-20260803-public/firmware.stable.bin) | Stable 原始固件镜像 | 59,108 B | `0090C982F0BF19A5468BBDE32663BF2F6420A720CDABDA6C046761ECE0858A43` |
-| [`repeaters.bin`](./release/LOSEHU132-bin-20260803-public/repeaters.bin) | K5DB v3 中继数据库 | 9,904 B | `84CCB5DEEB211DF62467D7B6F5DC19908EC34F96B36F1EEA773F319627070483` |
-| [`repeaters.stable.bin`](./release/LOSEHU132-bin-20260803-public/repeaters.stable.bin) | Stable 中继数据库 | 9,904 B | `84CCB5DEEB211DF62467D7B6F5DC19908EC34F96B36F1EEA773F319627070483` |
+| 版本 | 尾音状态 | 刷写镜像 | 原始镜像 |
+| --- | --- | --- | --- |
+| `public` | **无私人尾音**，保留入口并使用普通 Roger 尾音 | [`...-public.packed.bin`](./release/LOSEHU132-bin-20260820-final2-public/LOSEHU132-bin-20260820-final2-public.packed.bin) | [`...-public.bin`](./release/LOSEHU132-bin-20260820-final2-public/LOSEHU132-bin-20260820-final2-public.bin) |
+| `tail` | **带个人尾音**，内嵌修正后的 `1.wav` 单音近似 | [`...-tail.packed.bin`](./release/LOSEHU132-bin-20260820-final2-tail/LOSEHU132-bin-20260820-final2-tail.packed.bin) | [`...-tail.bin`](./release/LOSEHU132-bin-20260820-final2-tail/LOSEHU132-bin-20260820-final2-tail.bin) |
 
-公开发布目录中没有 `tails.bin` 或 `tails.stable.bin`。固件本体的自定义尾音入口仍保留；被排除的是个人尾音资源文件。
+两个版本都包含同一份 K5DB v3 中继数据库和校验清单。个人尾音已经编译进 `tail` 固件，不再使用外部 `tails.bin`；原始私人 `1.wav` 不上传仓库。数据库文件不是固件，不能放进 K5Web 固件刷写入口。
+
+| 数据文件 | 用途 | SHA-256 |
+| --- | --- | --- |
+| [`repeaters.bin`](./release/LOSEHU132-bin-20260820-final2-public/repeaters.bin) | K5DB v3 中继数据库 | `E164021D9F52855917D4878647006273B2F90D035FF16182F96C2FE82E1AB721` |
+| [`repeaters.build.json`](./release/LOSEHU132-bin-20260820-final2-public/repeaters.build.json) | 数据构建记录和来源信息 | `60AD5F503C1F1EC241E7D1A27237E0EE1945E42F9D4EAFFF55A0DD96F665C9A0` |
+
+完整文件哈希见两个目录中的 [`SHA256SUMS.txt`](./release/LOSEHU132-bin-20260820-final2-public/SHA256SUMS.txt) 和 [`SHA256SUMS.txt`](./release/LOSEHU132-bin-20260820-final2-tail/SHA256SUMS.txt)。
 
 ### 固件刷写
 
@@ -73,14 +77,12 @@
 
 ### 写入中继数据库（COM4）
 
-`repeaters.bin` 不是固件，不能放到 K5Web 的固件刷写入口。当前 LOSEHU132 工程提供 [`tools/write_eeprom_repeaters.py`](./tools/write_eeprom_repeaters.py)，它会把中继库写入扩展 EEPROM，并逐块读回校验；写入时也会同步写入同目录下的 `tails.bin`。
-
-个人带尾音目录必须同时包含 `repeaters.bin` 和 `tails.bin`。公开 GitHub 目录没有尾音文件，不能直接用来执行这个命令。
+`repeaters.bin` 不是固件，不能放到 K5Web 的固件刷写入口。当前 LOSEHU132 工程提供 [`tools/write_eeprom_repeaters.py`](./tools/write_eeprom_repeaters.py)，它只写入 K5DB v3 中继数据库，并逐块读回校验；尾音行为已经编译在所选固件中，不需要、不支持额外的 `tails.bin`。
 
 先在不连接电台的情况下做文件校验：
 
 ```bat
-cd /d <包含 repeaters.bin 和 tails.bin 的目录>
+cd /d <包含 repeaters.bin 的目录>
 C:/Python313/python.exe <仓库目录>/tools/write_eeprom_repeaters.py COM4 repeaters.bin
 ```
 
@@ -98,9 +100,12 @@ C:/Python313/python.exe <仓库目录>/tools/write_eeprom_repeaters.py COM4 repe
 
 完成后再次执行 `--verify-device`。出现 `EEPROM update verified` 或 `Device EEPROM matches` 后，再在电台菜单进入“全国中继”检查。
 
-### 个人带尾音包
+### 两个固件版本如何选择
 
-个人版不上传到 GitHub，只保存在本机下载文件夹。普通版本对应 `firmware.bin` + `tails.bin`，Stable 版本对应 `firmware.stable.bin` + `tails.stable.bin`。`tails.bin` 和 `tails.stable.bin` 是资源文件，不是固件镜像。
+- `public`：无你的私人尾音，适合公开分享和普通用户刷写；
+- `tail`：带你的个人尾音，已上传到本仓库 Release，并在文件名中明确标为 `tail`；
+- `MDC 尾音`仍然是 MDC 协议尾音，不等于个人 `1.wav` 尾音；
+- 两个版本的 `repeaters.bin` 相同，数据库需要通过 COM4 单独写入。
 
 刷写或写库前请保证电池充足、写频线插到底，并保留原始 EEPROM 备份。不要在型号或 EEPROM 容量不确定时尝试高地址数据库写入。
 ## 本地构建
@@ -136,8 +141,8 @@ make full
 
 本版本内置的中继数据快照为 **K5DB v3**：
 
-- 430 条模拟中继记录；
-- 覆盖 152 个城市；
+- 428 条模拟中继记录；
+- 覆盖 151 个城市；
 - 数据时间：`2026-07-28`；
 - 记录可能包含停用、迁移或尚未被本地用户确认的频率。
 
@@ -194,9 +199,9 @@ release/             已核验的版本发布产物
 
 请遵守各上游项目的许可证和当地无线电管理规定。仓库许可证见 [`LICENSE`](./LICENSE)。
 
-## 公版固件与中继数据
+## 固件变体与中继数据
 
-本仓库的公开发布目录只放公共固件和中继数据库，不包含维护者个人尾音资源。`tails.bin` 和 `tails.stable.bin` 不进入公开包；固件里的自定义尾音功能入口保留，删除的是资源文件而不是功能入口。
+本仓库同时发布公共无私人尾音版和个人带尾音版。两者都保留尾音菜单入口；区别在于 `public` 使用普通 Roger 尾音，`tail` 将个人 `1.wav` 的单音/增益/静音近似编译进固件。原始 `1.wav` 和旧的 `tails.bin` 不上传。
 
 公版发布前使用白名单打包并检查：
 
@@ -205,7 +210,7 @@ python tools/package_release.py --source . --output .\public-release
 python tools/check_public_release.py .\public-release
 ```
 
-默认打包结果不含尾音资源。`--include-tails` 只允许个人本地包使用，禁止把该结果上传到 GitHub Release。发布目录会生成 `release-manifest.json` 和 `SHA256SUMS.txt`；`.github/workflows/validate-public-release.yml` 会阻止把尾音文件带入 `release/LOSEHU132-bin-20260803-public`。
+默认打包结果是 `public` 版；需要生成个人带尾音固件包时使用 `--include-tails`。两种包都会生成 `release-manifest.json` 和 `SHA256SUMS.txt`，并通过文件名明确区分 `public` 与 `tail`。发布前仍应单独运行 `tools/check_public_release.py` 检查公共目录。
 
 中继数据库写入前先验证，默认只读：
 

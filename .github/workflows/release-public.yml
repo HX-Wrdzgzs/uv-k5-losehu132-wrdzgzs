@@ -7,13 +7,13 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Public release version, for example LOSEHU132-bin-20260810-public"
+        description: "Public release version, for example LOSEHU132-bin-20260820-final2"
         required: true
         type: string
       source_dir:
         description: "Existing public package directory in this repository"
         required: true
-        default: "release/LOSEHU132-bin-20260803-public"
+        default: "release/LOSEHU132-bin-20260820-final2-public"
         type: string
 
 permissions:
@@ -30,7 +30,7 @@ jobs:
       - name: Select public package
         id: source
         env:
-          SOURCE_DIR: ${{ inputs.source_dir || 'release/LOSEHU132-bin-20260803-public' }}
+          SOURCE_DIR: ${{ inputs.source_dir || 'release/LOSEHU132-bin-20260820-final2-public' }}
         run: echo "path=$SOURCE_DIR" >> "$GITHUB_OUTPUT"
       - name: Validate public package boundary
         run: |

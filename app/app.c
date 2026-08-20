@@ -99,7 +99,8 @@ uint8_t gPlayMSGRingCount = 0;
 #endif
 static bool flagSaveVfo;
 static bool flagSaveSettings;
-static bool flagSaveChannel;
+/* Save modes are numeric (1/2); bool would collapse deferred mode 2 to 1. */
+static uint8_t flagSaveChannel;
 
 static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
 

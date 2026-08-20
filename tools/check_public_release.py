@@ -6,23 +6,23 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 
 ALLOWED_FILES = {
-    "firmware.bin",
-    "firmware.packed.bin",
-    "firmware.stable.bin",
-    "firmware.stable.packed.bin",
     "repeaters.bin",
-    "repeaters.stable.bin",
-    "repeaters_manifest.json",
     "repeaters.build.json",
     "manifest.json",
     "sha256sums.txt",
     "release-manifest.json",
     "SHA256SUMS.txt",
 }
-FORBIDDEN_NAMES = {"tails.bin", "tails.stable.bin"}
+FORBIDDEN_NAMES = {"tails.bin", "tails.stable.bin", "1.wav"}
+PUBLIC_FIRMWARE_NAME = re.compile(r"^.+-public(?:\.packed)?\.bin$")
+
+
+def is_allowed_file(name: str) -> bool:
+    return name in ALLOWED_FILES or bool(PUBLIC_FIRMWARE_NAME.fullmatch(Path(name).name))
 
 
 def sha256(path: Path) -> str:
@@ -46,14 +46,14 @@ def main() -> int:
 
     files = sorted(path.relative_to(package).as_posix() for path in package.rglob("*") if path.is_file())
     forbidden = [name for name in files if Path(name).name in FORBIDDEN_NAMES or "tail" in Path(name).name.lower()]
-    unexpected = [name for name in files if name not in ALLOWED_FILES]
+    unexpected = [name for name in files if not is_allowed_file(name)]
     if forbidden:
         raise SystemExit(f"private tail resource found: {', '.join(forbidden)}")
     if unexpected:
         raise SystemExit(f"unexpected public-release file: {', '.join(unexpected)}")
 
-    manifest_path = package / "manifest.json"
-    if manifest_path.exists():
+    manifest_paths = [path for path in (package / "manifest.json", package / "release-manifest.json") if path.exists()]
+    for manifest_path in manifest_paths:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         entries = manifest.get("files", manifest.get("artifacts", []))
         if isinstance(entries, dict):
