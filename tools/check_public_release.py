@@ -10,7 +10,14 @@ import re
 from pathlib import Path
 
 ALLOWED_FILES = {
+    # Legacy public packages used generic firmware filenames.
+    "firmware.bin",
+    "firmware.packed.bin",
+    "firmware.stable.bin",
+    "firmware.stable.packed.bin",
     "repeaters.bin",
+    "repeaters.stable.bin",
+    "repeaters_manifest.json",
     "repeaters.build.json",
     "manifest.json",
     "sha256sums.txt",
